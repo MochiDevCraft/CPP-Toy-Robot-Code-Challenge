@@ -1,1 +1,6 @@
 /gitcommitcommand.txt
+/mapArray.cpp
+/*.exe
+.vscode/
+/*.gitignore
+/command.cpp

@@ -7,10 +7,10 @@
 struct Direction
 {
     std::map<std::string, std::vector<int>> facingDirection = {
-        {"NORTH", {1, 0}},
-        {"WEST", {0, -1}},
-        {"EAST", {0, 1}},
-        {"SOUTH", {-1, 0}}};
+        {"NORTH", {0, 1}},
+        {"WEST", {-1, 0}},
+        {"EAST", {1, 0}},
+        {"SOUTH", {0, -1}}};
 
     std::map<std::string, std::string> leftDirection = {
         {"NORTH", "WEST"},
@@ -28,8 +28,8 @@ struct Direction
 class Table
 {
 public:
-    int maxX = 5;
-    int maxY = 5;
+    const int maxX = 5;
+    const int maxY = 5;
 };
 
 class Robot
@@ -44,10 +44,9 @@ public:
     {
         positionX = -1;
         positionY = -1;
-        direction = "";
+        direction = "NORTH";
     }
-
-    void command();
+    bool command();
     void place(std::string location);
     void move();
     void rotate(std::string rotation);
@@ -55,49 +54,69 @@ public:
     bool onTable(int x, int y);
 
     std::string commandField(std::string command, int fieldLoc, char delimeter);
-    ~Robot(){}
+    ~Robot() {}
 };
-
 
 int main()
 {
     Robot r;
     r.command();
-
 }
-void Robot::command()
+bool Robot::command()
 {
     std::string commandLine = "";
-    std::regex reg("(PLACE (\\d+),(\\d+),(NORTH|SOUTH|EAST|WEST))|MOVE|LEFT|RIGHT|REPORT");
+    std::regex regPlace("PLACE (\\d+),(\\d+),(NORTH|SOUTH|EAST|WEST)");
+    std::regex regControl("MOVE|LEFT|RIGHT|REPORT");
 
-    do
+    std::getline(std::cin, commandLine);
+    std::string command = Robot::commandField(commandLine, 1, ' ');
+
+    if (std::regex_match(commandLine, regPlace) && command == "PLACE")
     {
-        std::cout << "Input command" << std::endl;
+        std::string location = "";
+        int idx = 2;
+        while (location.length() == 0)
+        {
+            location = Robot::commandField(commandLine, idx, ' ');
+            idx++;
+        }
+
+        this->place(location);
+    }
+
+    while (this->onTable(this->positionX, this->positionY))
+    {
         std::getline(std::cin, commandLine);
+        command = Robot::commandField(commandLine, 1, ' ');
 
-        std::string command = Robot::commandField(commandLine, 1, ' ');
+        if (std::regex_match(commandLine, regControl))
+        {
+            if (command == "MOVE")
+                this->move();
+            else if (command == "LEFT" || command == "RIGHT")
+                this->rotate(command);
+            else if (command == "REPORT")
+            {
+                this->report();
+                break;
+            }
+        }
+    }
 
-        if (command == "PLACE")
-            this->place(Robot::commandField(commandLine, 2, ' '));
-        else if (command == "MOVE")
-            this->move();
-        else if (command == "LEFT" || command == "RIGHT")
-            this->rotate(command);
-        else if (command == "REPORT")
-            this->report();
-            
-
-    } while (std::regex_match(commandLine, reg));
+    return true;
 }
+
 void Robot::place(std::string location)
 {
-    std::cout << "ROBOT is in the table" << std::endl;
-    this->positionX = std::stoi(Robot::commandField(location, 1, ','));
-    this->positionY = std::stoi(Robot::commandField(location, 2, ','));
-    this->direction = Robot::commandField(location, 3, ',');
-    
-    this->report();
+    int x = std::stoi(Robot::commandField(location, 1, ','));
+    int y = std::stoi(Robot::commandField(location, 2, ','));
 
+    if (this->onTable(x, y))
+    {
+        this->positionX = x;
+        this->positionY = y;
+        this->direction = Robot::commandField(location, 3, ',');
+    }
 }
 void Robot::move()
 {
@@ -106,7 +125,6 @@ void Robot::move()
     int x = this->positionX + itr->second[0];
     int y = this->positionY + itr->second[1];
 
-    std::cout << x << "," << y << std::endl;
     if (this->onTable(x, y))
     {
         this->positionX = x;
@@ -135,7 +153,7 @@ bool Robot::onTable(int newX, int newY)
 }
 void Robot::report()
 {
-    std::cout << "OUTPUT: " << this->positionX << "," << this->positionY << "," << this->direction << std::endl;
+    std::cout << "Output: " << this->positionX << "," << this->positionY << "," << this->direction << std::endl;
 }
 std::string Robot::commandField(std::string command, int fieldLoc, char delimeter)
 {
@@ -143,17 +161,17 @@ std::string Robot::commandField(std::string command, int fieldLoc, char delimete
     int start = 0;
     int fieldNum = 1;
 
-    for(int i = 0; i < command.length(); i++, length++)
+    for (int i = 0; i < command.length(); i++, length++)
     {
-        if(command.at(i) == delimeter || (i == (command.length()-1)))
+        if (command.at(i) == delimeter || (i == (command.length() - 1)))
         {
-            if((i == command.length() -1) && command.at(i) != delimeter )
+            if ((i == command.length() - 1) && command.at(i) != delimeter)
                 length++;
-            if(fieldNum == fieldLoc)
-                return command.substr(start,length);
+            if (fieldNum == fieldLoc)
+                return command.substr(start, length);
 
             fieldNum++;
-            start = i +1;
+            start = i + 1;
             length = -1;
         }
     }

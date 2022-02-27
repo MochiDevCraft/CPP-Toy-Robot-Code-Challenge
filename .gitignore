@@ -2,5 +2,5 @@
 /mapArray.cpp
 /*.exe
 .vscode/
-/*.gitignore
 /command.cpp
+/forloop.cpp

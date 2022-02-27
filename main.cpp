@@ -71,16 +71,9 @@ bool Robot::command()
     std::getline(std::cin, commandLine);
     std::string command = Robot::commandField(commandLine, 1, ' ');
 
-    if (std::regex_match(commandLine, regPlace) && command == "PLACE")
+    if (std::regex_match(commandLine, regPlace))
     {
-        std::string location = "";
-        int idx = 2;
-        while (location.length() == 0)
-        {
-            location = Robot::commandField(commandLine, idx, ' ');
-            idx++;
-        }
-
+        std::string location = Robot::commandField(commandLine, 2, ' ');
         this->place(location);
     }
 
@@ -102,10 +95,8 @@ bool Robot::command()
             }
         }
     }
-
     return true;
 }
-
 void Robot::place(std::string location)
 {
     int x = std::stoi(Robot::commandField(location, 1, ','));
